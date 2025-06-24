@@ -26,7 +26,7 @@ namespace Code_API_Mobile.Models
 
         [ForeignKey("UserId")]
         public User User { get; set; }
-
     }
+
 
 }

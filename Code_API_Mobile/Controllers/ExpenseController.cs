@@ -1,4 +1,5 @@
-﻿using Code_API_Mobile.Models;
+﻿using Code_API_Mobile.ModelDTO;
+using Code_API_Mobile.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,23 +36,41 @@ namespace Code_API_Mobile.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Expense>> Create([FromBody] Expense expense)
+        public async Task<ActionResult<Expense>> Create([FromBody] ExpenseRequest req)
         {
+            var expense = new Expense
+            {
+                Amount = req.Amount,
+                Description = req.Description,
+                Date = req.Date,
+                CategoryId = req.CategoryId,
+                UserId = req.UserId
+            };
+
             _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetById), new { id = expense.Id }, expense);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Expense updated)
-        {
-            if (id != updated.Id) return BadRequest();
 
-            _context.Entry(updated).State = EntityState.Modified;
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] ExpenseRequest req)
+        {
+            var existingExpense = await _context.Expenses.FindAsync(id);
+            if (existingExpense == null) return NotFound();
+
+            existingExpense.Amount = req.Amount;
+            existingExpense.Description = req.Description;
+            existingExpense.Date = req.Date;
+            existingExpense.CategoryId = req.CategoryId;
+            existingExpense.UserId = req.UserId;
+
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -73,14 +92,30 @@ namespace Code_API_Mobile.Controllers
                 .ToListAsync();
         }
 
-        // ✅ Tìm kiếm theo UserId + Ngày
-        [HttpGet("search/user/{userId}/date/{date}")]
-        public async Task<ActionResult<IEnumerable<Expense>>> GetByUserAndDate(int userId, DateTime date)
+        // ✅ API: Tìm kiếm theo userId + ngày + categoryId
+        [HttpGet("search/user/{userId}/date/{date}/category/{categoryId}")]
+        public async Task<ActionResult<List<Expense>>> GetByUserDateAndCategory(int userId, DateTime date, int categoryId)
         {
-            return await _context.Expenses
+            var result = await _context.Expenses
+                .Where(e => e.UserId == userId
+                            && e.CategoryId == categoryId
+                            && e.Date.Date == date.Date)
+                .ToListAsync();
+
+            return result;
+        }
+
+
+        [HttpGet("search/user/{userId}/date/{date}")]
+        public async Task<ActionResult<List<Expense>>> GetByUserAndDate(int userId, DateTime date)
+        {
+            var result = await _context.Expenses
                 .Where(e => e.UserId == userId && e.Date.Date == date.Date)
                 .ToListAsync();
+
+            return result; // ✅ Trả về array JSON đúng chuẩn
         }
+
     }
 
 }

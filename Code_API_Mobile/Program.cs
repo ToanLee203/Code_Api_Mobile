@@ -1,5 +1,4 @@
-
-using Code_API_Mobile.Models;
+﻿using Code_API_Mobile.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Code_API_Mobile
@@ -9,19 +8,37 @@ namespace Code_API_Mobile
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // ✅ Cấu hình kết nối DB
             builder.Services.AddDbContext<MobileDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("myCnn")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("myCnn")));
 
-            // Add services to the container.
+            // ✅ Cấu hình controller & JSON (KHÔNG dùng Preserve)
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                // ✅ Loại bỏ Preserve để không có $id, $values
+                options.JsonSerializerOptions.ReferenceHandler = null;
+                options.JsonSerializerOptions.WriteIndented = true;
+            });
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // ✅ Cấu hình Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // ✅ Cấu hình CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
+                });
+            });
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // ✅ Middleware
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -29,9 +46,8 @@ namespace Code_API_Mobile
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowAll");
             app.UseAuthorization();
-
 
             app.MapControllers();
 

@@ -16,9 +16,7 @@ namespace Code_API_Mobile.Models
         public string Password { get; set; }
 
         public string FullName { get; set; }
-
-        // Navigation property
-        public ICollection<Expense> Expenses { get; set; }
     }
+
 
 }

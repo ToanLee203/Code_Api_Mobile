@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Code_API_Mobile.Models
 {
@@ -9,7 +10,6 @@ namespace Code_API_Mobile.Models
 
         [Required]
         public string Name { get; set; }
-        public ICollection<Expense> Expenses { get; set; }
     }
 
 }
