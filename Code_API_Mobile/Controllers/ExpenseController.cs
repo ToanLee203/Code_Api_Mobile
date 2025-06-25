@@ -113,8 +113,37 @@ namespace Code_API_Mobile.Controllers
                 .Where(e => e.UserId == userId && e.Date.Date == date.Date)
                 .ToListAsync();
 
-            return result; // ✅ Trả về array JSON đúng chuẩn
+            return result;
         }
+
+        [HttpGet("search/user/{userId}/from/{fromDate}/to/{toDate}")]
+        public async Task<ActionResult<List<Expense>>> GetByUserAndDateRange(int userId, DateTime fromDate, DateTime toDate)
+        {
+            var result = await _context.Expenses
+                .Where(e => e.UserId == userId &&
+                            e.Date.Date >= fromDate.Date &&
+                            e.Date.Date <= toDate.Date)
+                .Include(e => e.Category)
+                .ToListAsync();
+
+            return result;
+        }
+
+
+        [HttpGet("search/user/{userId}/from/{fromDate}/to/{toDate}/category/{categoryId}")]
+        public async Task<ActionResult<List<Expense>>> GetByUserDateRangeAndCategory(int userId, DateTime fromDate, DateTime toDate, int categoryId)
+        {
+            var result = await _context.Expenses
+                .Where(e => e.UserId == userId &&
+                            e.CategoryId == categoryId &&
+                            e.Date.Date >= fromDate.Date &&
+                            e.Date.Date <= toDate.Date)
+                .Include(e => e.Category)
+                .ToListAsync();
+
+            return result;
+        }
+
 
     }
 

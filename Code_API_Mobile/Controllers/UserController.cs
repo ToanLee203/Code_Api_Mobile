@@ -1,4 +1,5 @@
-﻿using Code_API_Mobile.Models;
+﻿using Code_API_Mobile.ModelDTO;
+using Code_API_Mobile.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -32,6 +33,36 @@ namespace Code_API_Mobile.Controllers
                 user.FullName
             });
         }
+
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] RegisterRequest request)
+        {
+            // Kiểm tra email đã tồn tại chưa
+            var existingUser = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return Conflict(new { message = "Email đã tồn tại!" });
+            }
+
+            // Tạo người dùng mới
+            var newUser = new User
+            {
+                Email = request.Email,
+                Password = request.Password, // Lưu ý: nên mã hóa mật khẩu nếu dùng thật
+                FullName = request.FullName
+            };
+
+            _context.Users.Add(newUser);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                newUser.Id,
+                newUser.Email,
+                newUser.FullName
+            });
+        }
+
     }
 
     public class LoginRequest
